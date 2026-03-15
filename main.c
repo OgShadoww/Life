@@ -1,37 +1,61 @@
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/ioctl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+typedef struct {
+  int width;
+  int height;
+  int size;
+  int population;
+  char *board;
+} Board;
+
+void timeout() {
+  sleep(1000);
+}
 
 void clear() {
   printf("\033[2J\033[H");
 }
 
-int main() {
+Board *init_board() {
+  Board *b = malloc(sizeof(*b));
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w); 
-  const int WIDTH = w.ws_col;
-  const int HEIGHT = w.ws_row;
+  b->width = w.ws_col;
+  b->height = w.ws_row;
+  b->board = calloc(b->height * b->width, sizeof(char));
+  b->size = b->width * b->height;
+  memset(b->board, (int)' ', b->size);
 
-  //printf("%d %d", WIDTH, HEIGHT);
+  return b;
+}
 
-  char th[HEIGHT][WIDTH];
-  for(int i = 0; i < HEIGHT; i++) {
-    for(int j = 0; j < WIDTH; j++) {
-      th[i][j] = '.';
+void game_step(Board *board) {
+  
+}
+
+void print_board(Board *board) {
+  for(int i = 0; i < board->size; i++) {
+    printf("%c", board->board[i]);
+    if((i + 1) % board->width == 0 && i != 0) {
+      printf("\n");
     }
   }
+}
 
+int main() {
   clear();
-  for(int i = 0; i < HEIGHT; i++) {
-    for(int j = 0; j < WIDTH; j++) {
-        printf("%c ", th[i][j]);
-      }
-    printf("\n");
-  }
-
+  Board *board = init_board();
+  print_board(board);
   while(1) {
 
   }
+
+  free(board->board);
+  free(board);
 
   return 0;
 }

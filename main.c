@@ -102,8 +102,6 @@ void handle_user_input(char c, Cursor *cursor, Board *board) {
       board->board[(board->width * cursor->y) + cursor->x-1] = live;
       move_cursor(cursor->x, cursor->y);
       break;
-    case 'q':
-      return;
     case '\n':
       return;
   }
@@ -197,16 +195,25 @@ int main(int argc, char **argv) {
 
     if (ret > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
       char c = getchar();
-      if (c == '+') basic_time = basic_time > 10000 ? basic_time - 10000 : 1000;
-      else if (c == '-') basic_time += 10000;
-      else if (c == 'q') running = 0;
+      if (c == '+') {
+        basic_time -= 10000;
+        if (basic_time < 10000) basic_time = 10000;
+      }
+      else if (c == '-') {
+        basic_time += 10000;
+      }
+      else if(c == 'q') {
+        clear();
+        free(board->board);
+        free(board);
+        return 0;
+      }
     }
 
     clear();
     game_step(board);
     print_board(board, &(Cursor){.x=1, .y=1});
   }
-  clear();
 
   disable_raw_mode();
   free(board->board);

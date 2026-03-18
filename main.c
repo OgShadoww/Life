@@ -102,6 +102,10 @@ void handle_user_input(char c, Cursor *cursor, Board *board) {
       board->board[(board->width * cursor->y) + cursor->x-1] = live;
       move_cursor(cursor->x, cursor->y);
       break;
+    case 'p':
+      board->board[(board->width * cursor->y) + cursor->x-1] = dead;
+      move_cursor(cursor->x, cursor->y);
+      break;
     case '\n':
       return;
   }

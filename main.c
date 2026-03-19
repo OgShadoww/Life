@@ -167,22 +167,35 @@ void game_step(Board *board) {
   }
 }
 
-int main(int argc, char **argv) {
-  if(argc < 3) {
-    dead = '.';
-    live = '#';
+void read_patter_from_file(Board *board, char *file_name) {
+  FILE *file = fopen(file_name, "r");
+  if(!file) {
+    perror("Failled opening file");
+    return;
   }
-  else {
-    dead = argv[1][0];
-    live = argv[2][0];
-  }
-  enable_raw_mode();
-  clear();
-  Board *board = init_board();
-  print_board(board, &(Cursor){.x=1, .y=1});
-  setup_board(board);
-  long long basic_time = 500000;
 
+  char buff[board->width + 1];
+  int i = 0;
+  int j = 0;
+  while(i < board->height && fgets(buff, board->width, file)) {
+    size_t n = strcspn(buff, "\n");
+    if(n < board->width) {
+      memcpy(board->board+(board->width*i), buff, n);
+      memset(buff, (int)dead, board->width-n);
+      memcpy(board->board+(board->width*i)+n, buff, board->width-n);
+    }
+    else if(n == board->width) {
+      memcpy(board->board+(board->width*i), buff, n);
+    }
+    i++;
+  }
+  if(i < board->height) {
+    memset(board->board+(board->width*i), (int)dead, board->size-board->width*i);
+  }
+}
+
+void run(Board *board) {
+  long long basic_time = 500000;
   int running = 1;
 
   while (running) {
@@ -208,9 +221,7 @@ int main(int argc, char **argv) {
       }
       else if(c == 'q') {
         clear();
-        free(board->board);
-        free(board);
-        return 0;
+        return;
       }
     }
 
@@ -218,10 +229,53 @@ int main(int argc, char **argv) {
     game_step(board);
     print_board(board, &(Cursor){.x=1, .y=1});
   }
+}
 
-  disable_raw_mode();
-  free(board->board);
-  free(board);
+int main(int argc, char **argv) {
+  if(argc == 1) {
+    dead = ' ';
+    live = '0';
+
+    enable_raw_mode();
+    clear();
+    Board *board = init_board();
+    print_board(board, &(Cursor){.x=1, .y=1});
+    setup_board(board);
+    run(board);
+
+    disable_raw_mode();
+    free(board->board);
+    free(board);
+  }
+  else if(argc == 3) {
+    dead = argv[1][0];
+    live = argv[2][0];
+
+    enable_raw_mode();
+    clear();
+    Board *board = init_board();
+    print_board(board, &(Cursor){.x=1, .y=1});
+    setup_board(board);
+    run(board);
+
+    disable_raw_mode();
+    free(board->board);
+    free(board);
+  } 
+  else if(argc == 4) {
+    dead = argv[1][0];
+    live = argv[2][0];
+    char *file_name = argv[3];
+
+    clear();
+    Board *board = init_board();
+    read_patter_from_file(board, file_name);
+    run(board);
+
+    disable_raw_mode();
+    free(board->board);
+    free(board);
+  }
 
   return 0;
 }
